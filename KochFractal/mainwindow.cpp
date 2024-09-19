@@ -30,6 +30,14 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.fillRect(rect, Qt::white);
     painter.setPen(QPen(Qt::black, 1));
     painter.drawLines(kochPoints);
+    // drawing a line of a shortest distance
+    if(isMouse)
+    {
+        if(!rect.contains(mapFromGlobal(QCursor::pos())))
+            isMouse = false;
+        painter.setPen(QPen(Qt::red, 1));
+        painter.drawLine(bestPoint, mapFromGlobal(QCursor::pos()));
+    }
 }
 
 void MainWindow::on_iterateBtn_clicked()
@@ -38,24 +46,29 @@ void MainWindow::on_iterateBtn_clicked()
         ui->iterationLabel->setText(QString::number(++iterationLevel));
 }
 
+void MainWindow::on_resetBtn_clicked()
+{
+    iterationLevel = 0;
+    ui->iterationLabel->setText(QString::number(0));
+}
+
 void MainWindow::updateTimer()
 {
     this->update();
     this->updateKochPoints();
+    if(isMouse)
+        this->findShortest();
 }
 
 void MainWindow::updateKochPoints()
 {
-    // 0 - 2
-    // 1 - 5 (+3)
-    // 2 - 17 (+12)
     kochPoints.clear();
     QRect rect = ui->canvas->geometry();
     int ax, ay, aw, ah;
     rect.getRect(&ax, &ay, &aw, &ah);
 
-    kochPoints.append(QPointF(ax, ay+ah/2));
-    kochPoints.append(QPointF(ax+aw, ay+ah/2));
+    kochPoints.append(QPointF(ax, 2*(ay+ah)/3));
+    kochPoints.append(QPointF(ax+aw, 2*(ay+ah)/3));
     savedKochPoints = kochPoints;
     if(iterationLevel != 0)
     {
@@ -88,4 +101,32 @@ void MainWindow::updateKochPoints()
         }
     }
 }
+
+void MainWindow::findShortest()
+{
+    bestPoint = kochPoints[0];
+    QLineF l = QLineF(bestPoint, mapFromGlobal(QCursor::pos()));
+    for(int i = 0; i < kochPoints.size(); ++i)
+    {
+        QLineF temp = QLineF(kochPoints[i], mapFromGlobal(QCursor::pos()));
+        if(temp.length() < l.length())
+        {
+            l = temp;
+            bestPoint = kochPoints[i];
+        }
+    }
+}
+
+void MainWindow::mousePressEvent(QMouseEvent *e)
+{
+    QRect rect = ui->canvas->geometry();
+    if(rect.contains(mapFromGlobal(QCursor::pos())))
+        isMouse=true;
+}
+
+void MainWindow::mouseReleaseEvent(QMouseEvent *e)
+{
+    isMouse=false;
+}
+
 
