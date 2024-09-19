@@ -8,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->canvas->resize(this->width()-300, this->height());
+    ui->canvas->resize(this->width()-400, this->height());
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateTimer()));
@@ -31,13 +31,17 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.setPen(QPen(Qt::black, 1));
     painter.drawLines(kochPoints);
     // drawing a line of a shortest distance
+
     if(isMouse)
     {
         if(!rect.contains(mapFromGlobal(QCursor::pos())))
             isMouse = false;
         painter.setPen(QPen(Qt::red, 1));
         painter.drawLine(bestPoint, mapFromGlobal(QCursor::pos()));
+        ui->distanceLabel->setText(QString::number((QLineF(bestPoint, mapFromGlobal(QCursor::pos())).length()), 'f', 2)+" px");
     }
+    else
+        ui->distanceLabel->setText(QString::number(0)+" px");
 }
 
 void MainWindow::on_iterateBtn_clicked()
