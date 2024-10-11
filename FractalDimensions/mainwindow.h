@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QGraphicsScene>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,6 +19,8 @@ public:
     ~MainWindow();
 
 private:
+    QString pngFolder = "D:\\chaos-theory\\FractalDimensions\\png\\";
     Ui::MainWindow *ui;
+    QPixmap pix;
 };
 #endif // MAINWINDOW_H
