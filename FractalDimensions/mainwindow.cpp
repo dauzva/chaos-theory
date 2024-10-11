@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QLabel>
+#include <QGraphicsView>
+#include <QGraphicsPixmapItem>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -8,10 +10,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     QPixmap img(pngFolder+"koch.png");
-    QLabel *label = new QLabel(this);
-    label->setScaledContents( true );
-    label->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    label->setPixmap(img.scaled(label->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    ui->image->setPixmap(img);
+    ui->image->setAlignment(Qt::AlignCenter);
+    resize(img.size());
+    setWindowTitle("Fractal Dimension Calculator");
 
 }
 
