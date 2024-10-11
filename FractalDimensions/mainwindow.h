@@ -18,9 +18,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_loadButton_clicked();
+
 private:
     QString pngFolder = "D:\\chaos-theory\\FractalDimensions\\png\\";
     Ui::MainWindow *ui;
-    QPixmap pix;
+    QPixmap img;
 };
 #endif // MAINWINDOW_H
