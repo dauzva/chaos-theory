@@ -39,3 +39,26 @@ void MainWindow::on_loadButton_clicked()
     resize(img.size());
 }
 
+
+void MainWindow::on_calculateButton_clicked()
+{
+    QString filename="D:\\Data.txt";
+    QFile file( filename );
+    if ( file.open(QIODevice::ReadWrite) )
+    {
+        QTextStream stream( &file );
+        for(int i = 0; i < img.height(); ++i)
+        {
+            for(int j = 0; j < img.width(); ++j)
+            {
+                QColor color = img.toImage().pixelColor(j,i);
+                stream << qSetFieldWidth(3) << color.black() << " ";
+            }
+            stream << Qt::endl;
+        }
+    }
+    file.close();
+    qDebug() << "closed";
+
+}
+

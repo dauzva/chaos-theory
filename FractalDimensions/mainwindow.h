@@ -21,6 +21,8 @@ public:
 private slots:
     void on_loadButton_clicked();
 
+    void on_calculateButton_clicked();
+
 private:
     QString pngFolder = "D:\\chaos-theory\\FractalDimensions\\png\\";
     Ui::MainWindow *ui;
