@@ -9,6 +9,7 @@
 #include <QGenericMatrix>
 #include <QtMath>
 #include "D:\chaos-theory\FractalDimensions\eigen\Eigen\Dense"
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -66,14 +67,31 @@ void MainWindow::on_calculateButton_clicked()
     }
     file.close();
     qDebug() << "closed";
-    auto result = countGrid(photoPixels, 1);
-    qDebug() << result.first << "/" << result.second << " " << (float)result.first/result.second;
-    result = countGrid(photoPixels, 3);
-    qDebug() << result.first << "/" << result.second << " " << (float)result.first/result.second;
-    result = countGrid(photoPixels, 101);
-    qDebug() << result.first << "/" << result.second << " " << (float)result.first/result.second;
+    auto l3 = countGrid(photoPixels, 3);
+    qDebug() << l3.first << "/" << l3.second << " " << (float)l3.first/l3.second;
+    auto l5 =  countGrid(photoPixels, 5);
+    qDebug() << l5.first << "/" << l5.second << " " << (float)l5.first/l5.second;
+    auto l11 =  countGrid(photoPixels, 11);
+    qDebug() << l11.first << "/" << l11.second << " " << (float)l11.first/l11.second;
 
-    QGenericMatrix<2,3,double> A();
+    Eigen::Matrix<double, 3, 2> A;
+    Eigen::Matrix<double, 3, 1> Y;
+    double a = qLn(2);
+    A <<    2*a, 1,
+            3*a, 1,
+            4*a, 1;
+
+    Y <<    qLn(13),
+            qLn(33),
+            qLn(130);
+
+    auto D = (A.transpose()*A).determinant();
+
+    auto M = (A.transpose()*A).inverse() * A.transpose() * Y;
+
+    std::cout << A << "\n" << A.transpose() << "\n\n";
+    std::cout << Y << "\n\n";
+    std::cout << M;
 
 }
 
