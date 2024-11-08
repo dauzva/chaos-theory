@@ -27,5 +27,8 @@ private:
     QString pngFolder = "D:\\chaos-theory\\FractalDimensions\\png\\";
     Ui::MainWindow *ui;
     QPixmap img;
+    QVector<QVector<bool>> photoPixels;
+
+    std::pair<int, int> countGrid(QVector<QVector<bool>> M, int n);
 };
 #endif // MAINWINDOW_H
