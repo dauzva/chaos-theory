@@ -5,11 +5,9 @@
 #include <QGraphicsPixmapItem>
 #include <QFileDialog>
 #include <QImageReader>
-#include <vector>
 #include <QGenericMatrix>
 #include <QtMath>
 #include "D:\chaos-theory\FractalDimensions\eigen\Eigen\Dense"
-#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -46,53 +44,18 @@ void MainWindow::on_loadButton_clicked()
 
 void MainWindow::on_calculateButton_clicked()
 {
-    // reads black pixels from photo
-    QString filename="D:\\Data.txt";
-    QFile file( filename );
-    if ( file.open(QIODevice::ReadWrite | QIODevice::Truncate | QIODevice::Text) )
+    for(int i = 0; i < img.height(); ++i)
     {
-        QTextStream stream( &file );
-        for(int i = 0; i < img.height(); ++i)
+        photoPixels.resize(img.height());
+        for(int j = 0; j < img.width(); ++j)
         {
-            photoPixels.resize(img.height());
-            for(int j = 0; j < img.width(); ++j)
-            {
-                photoPixels[i].resize(img.width());
-                QColor color = img.toImage().pixelColor(j,i);
-                stream << (color.black() > 1 ? 1 : 0);
-                photoPixels[i][j] = (color.black() > 1 ? 1 : 0);
-            }
-            stream << Qt::endl;
+            photoPixels[i].resize(img.width());
+            QColor color = img.toImage().pixelColor(j,i);
+            photoPixels[i][j] = (color.black() > 1 && color.alpha() != 0 ? 1 : 0);    // 1 if some black and not transparent
         }
     }
-    file.close();
-    qDebug() << "closed";
-    auto l3 = countGrid(photoPixels, 3);
-    qDebug() << l3.first << "/" << l3.second << " " << (float)l3.first/l3.second;
-    auto l5 =  countGrid(photoPixels, 5);
-    qDebug() << l5.first << "/" << l5.second << " " << (float)l5.first/l5.second;
-    auto l11 =  countGrid(photoPixels, 11);
-    qDebug() << l11.first << "/" << l11.second << " " << (float)l11.first/l11.second;
 
-    Eigen::Matrix<double, 3, 2> A;
-    Eigen::Matrix<double, 3, 1> Y;
-    double a = qLn(2);
-    A <<    2*a, 1,
-            3*a, 1,
-            4*a, 1;
-
-    Y <<    qLn(13),
-            qLn(33),
-            qLn(130);
-
-    auto D = (A.transpose()*A).determinant();
-
-    auto M = (A.transpose()*A).inverse() * A.transpose() * Y;
-
-    std::cout << A << "\n" << A.transpose() << "\n\n";
-    std::cout << Y << "\n\n";
-    std::cout << M;
-
+    calculateDimension(photoPixels, 3, 5, 51);
 }
 
 std::pair<int, int> MainWindow::countGrid(QVector<QVector<bool>> M, int n)
@@ -104,9 +67,9 @@ std::pair<int, int> MainWindow::countGrid(QVector<QVector<bool>> M, int n)
         for(int j = 0; j < M.at(0).size(); j+=n)
         {
             bool included = false;
-            for(int ii = i; ii < (i+1)*n && !included; ++ii)
+            for(int ii = i; ii < (i/n+1)*n && !included; ++ii)
             {
-                for(int jj = j; jj < (j+1)*n && !included; ++jj)
+                for(int jj = j; jj < (j/n+1)*n && !included; ++jj)
                 {
                     included = (ii >= M.size() ? 0 : jj >= M.at(0).size() ? 0 : M[ii][jj]);
                 }
@@ -117,5 +80,29 @@ std::pair<int, int> MainWindow::countGrid(QVector<QVector<bool>> M, int n)
         }
     }
     return {count, all};
+}
+
+void MainWindow::calculateDimension(QVector<QVector<bool>> photoPixels, int l1, int l2, int l3)
+{
+    auto x1 =  countGrid(photoPixels, l1);
+    auto x2 =  countGrid(photoPixels, l2);
+    auto x3 =  countGrid(photoPixels, l3);
+
+    Eigen::Matrix<double, 3, 2> A;
+    Eigen::Matrix<double, 3, 1> Y;
+
+    // matrix of ln of inverse of box lenghts
+    A <<    -qLn(l1),  1,
+            -qLn(l2),  1,
+            -qLn(l3),  1;
+
+    // matrix of ln of box counts
+    Y <<    qLn(x1.first),
+            qLn(x2.first),
+            qLn(x3.first);
+
+    auto M = (A.transpose()*A).inverse() * A.transpose() * Y;
+
+    ui->dimensionLabel->setText(QString::number(M(0,0)));
 }
 

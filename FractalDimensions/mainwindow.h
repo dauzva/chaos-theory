@@ -30,5 +30,6 @@ private:
     QVector<QVector<bool>> photoPixels;
 
     std::pair<int, int> countGrid(QVector<QVector<bool>> M, int n);
+    void calculateDimension(QVector<QVector<bool>> photoPixels, int l1, int l2, int l3);
 };
 #endif // MAINWINDOW_H
