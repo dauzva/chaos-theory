@@ -21,14 +21,9 @@ public:
 
 public slots:
     void updateTimer();
-    void updateKochPoints();
-    void findShortest();
-
-private slots:
-    void on_iterateBtn_clicked();
-    void on_resetBtn_clicked();
-    void mousePressEvent(QMouseEvent *e) override;
-    void mouseReleaseEvent(QMouseEvent *e) override;
+    void generateKochLine();
+    void animation();
+    void animateFrame();
 
 private:
     Ui::MainWindow *ui;
@@ -36,9 +31,15 @@ private:
     int iterationLevel = 0;
     int kochSize = 2;
     QList<QPointF> kochPoints;
+    QList<QPointF> k3;
     QList<QPointF> savedKochPoints;
     QPointF bestPoint;
-    bool isMouse = false;
+
+    QVector<QPointF> initialPoints; // Original points before transformation
+    QVector<QPointF> targetPoints;  // Target points after transformation
+    int currentFrame = 0;           // Current frame in the animation
+    int totalFrames = 120;           // Total frames for smooth animation
+    QTimer *animationTimer;         // Timer for controlling frame rate
 
 };
 #endif // MAINWINDOW_H

@@ -2,6 +2,27 @@
 #include "ui_mainwindow.h"
 #include <QPainter>
 #include <QTimer>
+#include <complex>
+
+std::complex<double> f1(std::complex<double> z, std::complex<double> a) {
+    return a * z * (1.0 - z);
+}
+
+std::complex<double> f2(std::complex<double> z, std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> d) {
+    return (a * z + b) / (c * z - d);
+}
+
+std::complex<double> f3(std::complex<double> z, std::complex<double> a, std::complex<double> b) {
+    return a * z + b;
+}
+
+QVector<std::complex<double>> convertToComplex(const QVector<QPointF> &points) {
+    QVector<std::complex<double>> complexPoints;
+    for (const QPointF &point : points) {
+        complexPoints.append(std::complex<double>(point.x(), point.y()));
+    }
+    return complexPoints;
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -10,9 +31,17 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->canvas->resize(this->width()-400, this->height());
 
-    timer = new QTimer(this);
+    /*timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateTimer()));
-    timer->start(10); // Timer fires every 1 milliseconds
+    timer->start(1000); // Timer fires every 1 milliseconds*/
+
+    iterationLevel = 3;
+    generateKochLine();
+
+
+    animationTimer = new QTimer(this);
+    connect(animationTimer, &QTimer::timeout, this, &MainWindow::animateFrame);
+    animationTimer->start(10);
 }
 
 MainWindow::~MainWindow()
@@ -30,41 +59,19 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.fillRect(rect, Qt::white);
     painter.setPen(QPen(Qt::black, 1));
     painter.drawLines(kochPoints);
-    // drawing a line of a shortest distance
-
-    if(isMouse)
-    {
-        if(!rect.contains(mapFromGlobal(QCursor::pos())))
-            isMouse = false;
-        painter.setPen(QPen(Qt::red, 1));
-        painter.drawLine(bestPoint, mapFromGlobal(QCursor::pos()));
-        ui->distanceLabel->setText(QString::number((QLineF(bestPoint, mapFromGlobal(QCursor::pos())).length()), 'f', 2)+" px");
-    }
-    else
-        ui->distanceLabel->setText(QString::number(0)+" px");
-}
-
-void MainWindow::on_iterateBtn_clicked()
-{
-    if(iterationLevel < 5)
-        ui->iterationLabel->setText(QString::number(++iterationLevel));
-}
-
-void MainWindow::on_resetBtn_clicked()
-{
-    iterationLevel = 0;
-    ui->iterationLabel->setText(QString::number(0));
 }
 
 void MainWindow::updateTimer()
 {
-    this->update();
-    this->updateKochPoints();
-    if(isMouse)
-        this->findShortest();
+    /*this->update();
+    //this->updateKochPoints();
+    for(int i = 10; i > 0; ++i)
+    {
+        this->animation();
+    }*/
 }
 
-void MainWindow::updateKochPoints()
+void MainWindow::generateKochLine()
 {
     kochPoints.clear();
     QRect rect = ui->canvas->geometry();
@@ -106,31 +113,85 @@ void MainWindow::updateKochPoints()
     }
 }
 
-void MainWindow::findShortest()
+void MainWindow::animation()
 {
-    bestPoint = kochPoints[0];
-    QLineF l = QLineF(bestPoint, mapFromGlobal(QCursor::pos()));
-    for(int i = 0; i < kochPoints.size(); ++i)
-    {
-        QLineF temp = QLineF(kochPoints[i], mapFromGlobal(QCursor::pos()));
-        if(temp.length() < l.length())
-        {
-            l = temp;
-            bestPoint = kochPoints[i];
-        }
+    QVector<std::complex<double>> newPoints;
+    QVector<std::complex<double>> kochComplex = convertToComplex(kochPoints);
+
+    std::complex<double> a(2,2);
+    std::complex<double> b(2,1);
+    std::complex<double> c(20,1);
+    std::complex<double> d(2,10);
+
+    // Clear previous points and calculate new transformed points
+    kochPoints.clear();
+    for (std::complex<double> point : kochComplex) {
+        newPoints.append(f2(point, a, b, c, d));
+    }
+
+    // Step 1: Calculate the bounding box of the transformed points
+    double minX = std::numeric_limits<double>::max();
+    double maxX = std::numeric_limits<double>::lowest();
+    double minY = std::numeric_limits<double>::max();
+    double maxY = std::numeric_limits<double>::lowest();
+
+    for (const auto &point : newPoints) {
+        minX = std::min(minX, point.real());
+        maxX = std::max(maxX, point.real());
+        minY = std::min(minY, point.imag());
+        maxY = std::max(maxY, point.imag());
+    }
+
+    // Step 2: Calculate scaling factors to fit within the QRect
+    QRect rect = ui->canvas->geometry();
+    double scaleX = rect.width() / (maxX - minX);
+    double scaleY = rect.height() / (maxY - minY);
+    double scale = std::min(scaleX, scaleY) * 0.9;
+
+    // Step 3: Calculate offset to center points within rect
+    double offsetX = rect.x() + rect.width() / 2;
+    double offsetY = rect.y() + rect.height() / 2;
+
+    // Step 4: Scale and translate points to fit in the QRect
+    for (const auto &point : newPoints) {
+        double x = (point.real() - (minX + maxX) / 2) * scale + offsetX;
+        double y = (point.imag() - (minY + maxY) / 2) * scale + offsetY;
+        kochPoints.append(QPointF(x, y));
     }
 }
 
-void MainWindow::mousePressEvent(QMouseEvent *e)
+void MainWindow::animateFrame()
 {
-    QRect rect = ui->canvas->geometry();
-    if(rect.contains(mapFromGlobal(QCursor::pos())))
-        isMouse=true;
+    // Check if animation is complete
+    if (currentFrame == 0) {
+        initialPoints = kochPoints;
+        animation();
+        targetPoints = kochPoints;
+    }
+    else if (currentFrame > totalFrames)
+    {
+        currentFrame = 0;
+        initialPoints = kochPoints;
+        animation();
+        targetPoints = kochPoints;
+    }
+
+
+    kochPoints.clear(); // Clear current points for the next frame
+
+
+    // Interpolate each point between initialPoints and targetPoints
+    double t = static_cast<double>(currentFrame) / totalFrames; // Interpolation factor (0 to 1)
+    for (int i = 0; i < initialPoints.size(); ++i) {
+        double x = (1 - t) * initialPoints[i].x() + t * targetPoints[i].x();
+        double y = (1 - t) * initialPoints[i].y() + t * targetPoints[i].y();
+        kochPoints.append(QPointF(x, y));
+    }
+
+    currentFrame++;    // Move to the next frame
+    update();          // Redraw the widget
 }
 
-void MainWindow::mouseReleaseEvent(QMouseEvent *e)
-{
-    isMouse=false;
-}
+
 
 
