@@ -4,7 +4,7 @@
 #include <QTimer>
 #include <complex>
 
-std::complex<double> f1(std::complex<double> z, std::complex<double> a) {
+std::complex<double> f1(std::complex<double> z, std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> d) {
     return a * z * (1.0 - z);
 }
 
@@ -12,7 +12,7 @@ std::complex<double> f2(std::complex<double> z, std::complex<double> a, std::com
     return (a * z + b) / (c * z - d);
 }
 
-std::complex<double> f3(std::complex<double> z, std::complex<double> a, std::complex<double> b) {
+std::complex<double> f3(std::complex<double> z, std::complex<double> a, std::complex<double> b, std::complex<double> c, std::complex<double> d) {
     return a * z + b;
 }
 
@@ -31,9 +31,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     ui->canvas->resize(this->width()-400, this->height());
 
-    /*timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(updateTimer()));
-    timer->start(1000); // Timer fires every 1 milliseconds*/
 
     iterationLevel = 3;
     generateKochLine();
@@ -41,7 +38,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     animationTimer = new QTimer(this);
     connect(animationTimer, &QTimer::timeout, this, &MainWindow::animateFrame);
-    animationTimer->start(10);
 }
 
 MainWindow::~MainWindow()
@@ -59,16 +55,6 @@ void MainWindow::paintEvent(QPaintEvent *event)
     painter.fillRect(rect, Qt::white);
     painter.setPen(QPen(Qt::black, 1));
     painter.drawLines(kochPoints);
-}
-
-void MainWindow::updateTimer()
-{
-    /*this->update();
-    //this->updateKochPoints();
-    for(int i = 10; i > 0; ++i)
-    {
-        this->animation();
-    }*/
 }
 
 void MainWindow::generateKochLine()
@@ -118,15 +104,10 @@ void MainWindow::animation()
     QVector<std::complex<double>> newPoints;
     QVector<std::complex<double>> kochComplex = convertToComplex(kochPoints);
 
-    std::complex<double> a(2,2);
-    std::complex<double> b(2,1);
-    std::complex<double> c(20,1);
-    std::complex<double> d(2,10);
-
     // Clear previous points and calculate new transformed points
     kochPoints.clear();
     for (std::complex<double> point : kochComplex) {
-        newPoints.append(f2(point, a, b, c, d));
+        newPoints.append(transformFunc(point, a, b, c, d));
     }
 
     // Step 1: Calculate the bounding box of the transformed points
@@ -162,7 +143,12 @@ void MainWindow::animation()
 
 void MainWindow::animateFrame()
 {
-    // Check if animation is complete
+    if(isReset)
+    {
+        currentFrame = 0;
+        update();
+        return;
+    }
     if (currentFrame == 0) {
         initialPoints = kochPoints;
         animation();
@@ -194,4 +180,60 @@ void MainWindow::animateFrame()
 
 
 
+
+
+void MainWindow::on_resetButton_clicked()
+{
+    isReset = true;
+    kochPoints.clear();
+    generateKochLine();
+}
+
+
+void MainWindow::on_f1Button_clicked()
+{
+    isReset = false;
+    transformFunc = f1;
+    a.real(ui->arBox->value());
+    a.imag(ui->aiBox->value());
+    b.real(ui->brBox->value());
+    b.imag(ui->biBox->value());
+    c.real(ui->crBox->value());
+    c.imag(ui->ciBox->value());
+    d.real(ui->drBox->value());
+    d.imag(ui->diBox->value());
+    animationTimer->start(10);
+}
+
+
+void MainWindow::on_f2Button_2_clicked()
+{
+    isReset = false;
+    transformFunc = f2;
+    a.real(ui->arBox->value());
+    a.imag(ui->aiBox->value());
+    b.real(ui->brBox->value());
+    b.imag(ui->biBox->value());
+    c.real(ui->crBox->value());
+    c.imag(ui->ciBox->value());
+    d.real(ui->drBox->value());
+    d.imag(ui->diBox->value());
+    animationTimer->start(10);
+}
+
+
+void MainWindow::on_f3Button_3_clicked()
+{
+    isReset = false;
+    transformFunc = f3;
+    a.real(ui->arBox->value());
+    a.imag(ui->aiBox->value());
+    b.real(ui->brBox->value());
+    b.imag(ui->biBox->value());
+    c.real(ui->crBox->value());
+    c.imag(ui->ciBox->value());
+    d.real(ui->drBox->value());
+    d.imag(ui->diBox->value());
+    animationTimer->start(10);
+}
 
