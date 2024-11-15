@@ -21,7 +21,6 @@ public:
     void paintEvent(QPaintEvent *event) override;
 
 public slots:
-    void updateTimer();
     void generateKochLine();
     void animation();
     void animateFrame();
