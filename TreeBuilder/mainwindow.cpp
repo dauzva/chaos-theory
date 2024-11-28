@@ -50,12 +50,15 @@ void MainWindow::on_resetBtn_clicked()
 
 void MainWindow::updateTimer()
 {
-    this->updateMath();
+    if(isMouse && !initEndpoints.empty())
+        this->updateMath();
     this->update();
 }
 
 void MainWindow::updateMath()
 {
+    initEndpoints[initLinesCount-1] = mapFromGlobal(QCursor::pos());
+    this->updateTree();
 }
 
 void MainWindow::updateTree()
@@ -107,6 +110,7 @@ void MainWindow::mousePressEvent(QMouseEvent *e)
     QRect rect = ui->canvas->geometry();
     if(rect.contains(mapFromGlobal(QCursor::pos())))
     {
+        isMouse = true;
         currentEndpoint = mapFromGlobal(QCursor::pos());
         if(isNewLine)
         {
