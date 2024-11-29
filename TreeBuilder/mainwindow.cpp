@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateTimer()));
-    timer->start(10); // Timer fires every 1 milliseconds
+    timer->start(50); // Timer fires every 1 milliseconds
 
     QTimer::singleShot(0, this, SLOT(updateTree())); // Defer updateTree until after setup
 }
@@ -52,7 +52,31 @@ void MainWindow::updateTimer()
 {
     if(isMouse && !initEndpoints.empty())
         this->updateMath();
+    if(isWind)
+    {
+        this->updateTree();
+        this->animateWind();
+    }
     this->update();
+}
+
+void MainWindow::animateWind()
+{
+    static qreal time = 0;
+    time += 0.05;
+
+    // Random base wind strength using a sine wave combined with noise
+    qreal baseWindStrength = qSin(time)*3 + ((rand()%100 - 50)/100.0);
+
+    for (int i = 0; i < initMath.count(); ++i)
+    {
+        qreal maxAngleChange = ((rand() % 10) / 100.0);
+        qreal windStrength = baseWindStrength + ((rand() % 5) / 10.0);
+        qreal angleChange = windStrength * ((rand() % 100) / 100.0);
+        angleChange = qBound(-maxAngleChange, angleChange, maxAngleChange);
+
+        initMath[i].second += (double)angleChange;
+    }
 }
 
 void MainWindow::updateMath()
@@ -75,12 +99,12 @@ void MainWindow::updateTree()
     currentTreeLines = treeLines;
 
     // calculate angles and distances
-    foreach (QPointF point, initEndpoints)
-    {
-        QLineF temp = QLineF(initPoint, point);
-        initMath[initLinesCount-1] = std::make_pair((double)temp.length()/initLenght,temp.angle()-90);
-        qDebug() << initMath;
-    }
+    if(!isWind)
+        foreach (QPointF point, initEndpoints)
+        {
+            QLineF temp = QLineF(initPoint, point);
+            initMath[initLinesCount-1] = std::make_pair((double)temp.length()/initLenght,temp.angle()-90);
+        }
 
 
     for(int j = 1; j <= iterationLevel && !initEndpoints.empty(); ++j)
@@ -158,5 +182,11 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     QMainWindow::resizeEvent(event);
     this->updateTree();
 
+}
+
+
+void MainWindow::on_windBtn_clicked()
+{
+    isWind = isWind ? false : true;
 }
 

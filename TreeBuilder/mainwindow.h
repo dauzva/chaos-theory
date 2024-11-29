@@ -23,6 +23,7 @@ public slots:
     void updateTimer();
     void updateTree();
     void updateMath();
+    void animateWind();
 
 private slots:
     void on_resetBtn_clicked();
@@ -31,8 +32,8 @@ private slots:
     void resizeEvent(QResizeEvent* event) override;
     void on_iterationSlider_sliderMoved(int position);
     void on_iterationSlider_valueChanged(int value);
-
     void on_newLineBtn_clicked();
+    void on_windBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -48,6 +49,8 @@ private:
     QPointF currentEndpoint;
     bool isMouse = false;
     bool isNewLine = false;
+    bool isWind = false;
+    int windDirection = 1;
 
 };
 #endif // MAINWINDOW_H

@@ -110,6 +110,13 @@
          <layout class="QHBoxLayout" name="horizontalLayout"/>
         </item>
         <item>
+         <widget class="QPushButton" name="windBtn">
+          <property name="text">
+           <string>Wind</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
