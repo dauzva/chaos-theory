@@ -63,17 +63,20 @@ void MainWindow::updateTimer()
 void MainWindow::animateWind()
 {
     static qreal time = 0;
-    time += 0.05;
+    //time += 0.01;
+    time += time < 62.8 ? 0.01 : -62.8;
 
-    // Random base wind strength using a sine wave combined with noise
-    qreal baseWindStrength = qSin(time)*3 + ((rand()%100 - 50)/100.0);
+    qreal amplitude = 1.0 + 0.2 * std::sin(0.1 * time);
+    qreal frequency = 0.5 + 0.05 * std::sin(10 * time);
+    qreal baseWave = std::sin(2 * M_PI * frequency * time);
+    qreal randomNoise = 0.1 * (((   std::rand() % 2000) / 1000.0) - 1.0); // Random between -0.1 and 0.1
+
+    qreal baseWindStrength = amplitude * baseWave + randomNoise;
 
     for (int i = 0; i < initMath.count(); ++i)
     {
-        qreal maxAngleChange = ((rand() % 10) / 100.0);
-        qreal windStrength = baseWindStrength + ((rand() % 5) / 10.0);
-        qreal angleChange = windStrength * ((rand() % 100) / 100.0);
-        angleChange = qBound(-maxAngleChange, angleChange, maxAngleChange);
+        qreal windStrength = baseWindStrength;
+        qreal angleChange = windStrength/5;
 
         initMath[i].second += (double)angleChange;
     }
