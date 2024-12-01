@@ -31,8 +31,31 @@ void MainWindow::paintEvent(QPaintEvent *event)
     rect.getRect(&ax, &ay, &aw, &ah);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.fillRect(rect, Qt::white);
-    painter.setPen(QPen(Qt::black, 1));
-    painter.drawLines(treeLines);
+    int trunksize = 10;
+    painter.setPen(QPen(QColor(114,92,66), trunksize));
+
+    QList<QColor> leaf = {QColor(30,119,67), QColor	(9,95,64),QColor(45,70,47),QColor(52,109,34),QColor(48,113,12)};
+    if(!treeLines.empty())
+        painter.drawLine(treeLines[0]);
+
+    int totalLines = 1;
+    for(int j = 1; j <= iterationLevel && !initEndpoints.empty(); ++j)
+    {
+        int _total = totalLines;
+        painter.setPen(QPen(QColor(114*pow(0.8,j),92*pow(0.8,j),66*pow(0.8,j)), trunksize*pow(0.8,j)));
+        for(int i = totalLines; i < pow(initLinesCount,j)+ _total; ++i)
+        {
+            if(j+2 > iterationLevel)
+            {
+                QColor a = leaf.at(0);
+                painter.setPen(QPen(leaf.at(0), trunksize * pow(0.8,j)));
+                leaf.remove(0);
+                leaf.append(a);
+            }
+            painter.drawLine(treeLines[i]);
+            totalLines++;
+        }
+    }
 }
 
 void MainWindow::on_resetBtn_clicked()
@@ -43,8 +66,10 @@ void MainWindow::on_resetBtn_clicked()
     treeLines.clear();
     initEndpoints.clear();
     initMath.clear();
+    leafCache.clear();
     currentTreeLines.clear();
     initLinesCount = 0;
+    isWind = false;
     this->updateTree();
 }
 
@@ -90,6 +115,7 @@ void MainWindow::updateMath()
 
 void MainWindow::updateTree()
 {
+    leafCache.clear();
     treeLines.clear();
     QRect rect = ui->canvas->geometry();
     int ax, ay, aw, ah;
@@ -141,8 +167,8 @@ void MainWindow::mousePressEvent(QMouseEvent *e)
         currentEndpoint = mapFromGlobal(QCursor::pos());
         if(isNewLine)
         {
-            initEndpoints.append(currentEndpoint);
             initLinesCount++;
+            initEndpoints.append(currentEndpoint);
             initMath.append(std::make_pair(0,0));
             isNewLine = false;
         }

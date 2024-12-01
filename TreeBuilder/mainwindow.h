@@ -45,6 +45,7 @@ private:
     QList<QLineF> treeLines;
     QList<QLineF> currentTreeLines;
     QList<std::pair<qreal, qreal>> initMath;
+    QList<int> leafCache;
     QPointF initPoint;
     QPointF currentEndpoint;
     bool isMouse = false;
