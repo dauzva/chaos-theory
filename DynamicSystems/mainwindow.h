@@ -23,7 +23,7 @@ public slots:
     void updateTimer();
     void drawAxes(QPainter &painter, int margin, int canvasWidth, int canvasHeight,
                               double xMin, double xMax, double yMin, double yMax,
-                  double xScale, double yScale);
+                  double xScale, double yScale, QWidget* _canvas);
 
 private slots:
     void on_iterateBtn_clicked();

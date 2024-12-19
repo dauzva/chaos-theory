@@ -10,7 +10,9 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->canvas->resize(this->width()-400, this->height());
+    ui->canvas->resize(this->width()/2, this->height()/2);
+    ui->canvas2->resize(this->width()/2, this->height()/2);
+    ui->canvas3->resize(this->width()/2, this->height()/2);
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(updateTimer()));
@@ -27,9 +29,9 @@ void MainWindow::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    const int margin = 50;
-    const int canvasWidth = ui->canvas->width() - 2 * margin;
-    const int canvasHeight = ui->canvas->height() - 2 * margin;
+    const int margin = 0;
+    const int canvasWidth = ui->canvas->width();
+    const int canvasHeight = ui->canvas->height();
 
 
     double c = 5; // <---------------------------------------------- to be transformed by slider
@@ -81,7 +83,9 @@ void MainWindow::paintEvent(QPaintEvent *event)
     double yScale = canvasHeight / (yMax - yMin);
 
     // Draw axes
-    drawAxes(painter, margin, canvasWidth, canvasHeight, xMin, xMax, yMin, yMax, xScale, yScale);
+    drawAxes(painter, margin, canvasWidth, canvasHeight, xMin, xMax, yMin, yMax, xScale, yScale, ui->canvas);
+    drawAxes(painter, margin, ui->canvas2->width(), ui->canvas2->height(), xMin, xMax, yMin, yMax, xScale, yScale, ui->canvas2);
+    drawAxes(painter, margin, ui->canvas3->width(), ui->canvas3->height(), xMin, xMax, yMin, yMax, xScale, yScale, ui->canvas3);
 
     // Draw points
     painter.setPen(QPen(Qt::red, 1));
@@ -94,32 +98,32 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
 void MainWindow::drawAxes(QPainter &painter, int margin, int canvasWidth, int canvasHeight,
                           double xMin, double xMax, double yMin, double yMax,
-                          double xScale, double yScale)
+                          double xScale, double yScale, QWidget* _canvas)
 {
     // Draw X-axis
-    painter.drawLine(margin, height() - margin, margin + canvasWidth, height() - margin);
-    painter.drawText(margin + canvasWidth + 10, height() - margin, "X Axis");
+    painter.drawLine(_canvas->x()+margin, _canvas->y()+canvasHeight , _canvas->x()+ margin + canvasWidth, _canvas->y()+canvasHeight );
+    //painter.drawText(margin + canvasWidth + 10, _canvas->y() - margin, "X Axis");
 
     // Draw Y-axis
-    painter.drawLine(margin, height() - margin, margin, margin);
-    painter.drawText(margin - 30, margin - 10, "Y Axis");
+    painter.drawLine(_canvas->x()+margin, _canvas->y()+canvasHeight , _canvas->x()+margin, _canvas->y() );
+    //painter.drawText(_canvas->x()+margin - 30, _canvas->y()+canvasHeight - 10, "Y Axis");
 
     // Add tick marks and labels for X-axis
     const int numXTicks = 10;
     for (int i = 0; i <= numXTicks; ++i) {
         double xValue = xMin + i * (xMax - xMin) / numXTicks;
-        int x = margin + (xValue - xMin) * xScale;
-        painter.drawLine(x, height() - margin - 5, x, height() - margin + 5);
-        painter.drawText(x - 10, height() - margin + 20, QString::number(xValue, 'f', 2));
+        int x = _canvas->x()+margin + (xValue - xMin) * xScale;
+        painter.drawLine(x, _canvas->y()+canvasHeight - margin - 5, x, _canvas->y()+canvasHeight - margin + 5);
+        painter.drawText(x - 10, _canvas->y()+canvasHeight - margin + 20, QString::number(xValue, 'f', 2));
     }
 
     // Add tick marks and labels for Y-axis
     const int numYTicks = 10;
     for (int i = 0; i <= numYTicks; ++i) {
         double yValue = yMin + i * (yMax - yMin) / numYTicks;
-        int y = height() - margin - (yValue - yMin) * yScale;
-        painter.drawLine(margin - 5, y, margin + 5, y);
-        painter.drawText(margin - 40, y + 5, QString::number(yValue, 'f', 2));
+        int y = _canvas->y() - margin - (yValue - yMin) * yScale;
+        painter.drawLine(_canvas->x() + margin - 5, y+canvasHeight, _canvas->x() + margin + 5, y+canvasHeight);
+        painter.drawText(_canvas->x() + margin - 35, y+canvasHeight + 5, QString::number(yValue, 'f', 2));
     }
 }
 
